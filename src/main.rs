@@ -1,3 +1,4 @@
+use std::fs;
 use std::net::TcpListener;
 use std::net::TcpStream;
 use std::io::prelude::*;
@@ -26,14 +27,20 @@ fn handle_connection(mut stream: TcpStream)
     // convert slice of bytes to string
     println!("request: {}", String::from_utf8_lossy(&buffer[..]));
 
+    // to return index.html, contents need to be read into variable
+    let contents = fs::read_to_string("index.html").unwrap();
     /*
     Response needs to contain:
     - HTTP-Version Status-Code Reason-Phrase CRLF
+    - Content-Length header (amount of bytes returned in message-body)
     - message-body
     - e.g. HTTP/1.1 200 OK\r\n\r\n
     */
-    
-    let response = "HTTP/1.1 200 OK\r\n\r\n";
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+        contents.len(),
+        contents
+    );
     stream.write(response.as_bytes()).unwrap();
     stream.flush().unwrap();
 }
